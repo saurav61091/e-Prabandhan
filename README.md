@@ -1086,7 +1086,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 If you encounter any problems or have questions, please:
 1. Check the [documentation](#documentation)
-2. Look through [existing issues](https://github.com/yourusername/e-prabandhan/issues)
+2. Look through [existing issues](https://github.com/saurav61091/e-prabandhan/issues)
 3. Create a new issue if your problem persists
 
 ## Acknowledgments
@@ -1218,7 +1218,7 @@ npm run seed
 #### Development Setup
 ```bash
 # Clone repository
-git clone https://github.com/your-org/e-prabandhan.git
+git clone https://github.com/saurav61091/e-prabandhan.git
 
 # Install dependencies
 cd e-prabandhan
