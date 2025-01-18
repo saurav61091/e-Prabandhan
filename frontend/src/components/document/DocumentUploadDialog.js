@@ -1,3 +1,17 @@
+/**
+ * Document Upload Dialog Component
+ * 
+ * A modal dialog component that handles document upload functionality.
+ * Features include:
+ * - File selection and preview
+ * - Metadata input (title, description, tags, etc.)
+ * - File type validation
+ * - Progress tracking
+ * - Error handling
+ * 
+ * @component
+ */
+
 import React from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import {
@@ -27,7 +41,15 @@ import { useFileUpload } from '../../hooks/useFileUpload';
 import FormError from '../common/FormError';
 import ErrorAlert from '../common/ErrorAlert';
 
+/**
+ * Document Upload Dialog Component
+ * 
+ * @param {Object} props - Component props
+ * @param {boolean} props.open - Controls dialog visibility
+ * @param {function} props.onClose - Handler for dialog close
+ */
 const DocumentUploadDialog = ({ open, onClose }) => {
+  // State management
   const dispatch = useDispatch();
   const { upload, progress, isUploading, error: uploadError } = useFileUpload();
   const [selectedFile, setSelectedFile] = React.useState(null);
@@ -67,6 +89,10 @@ const DocumentUploadDialog = ({ open, onClose }) => {
     }
   });
 
+  /**
+   * Handle dialog close
+   * Resets form and state
+   */
   const handleClose = () => {
     formik.resetForm();
     setSelectedFile(null);
@@ -75,6 +101,10 @@ const DocumentUploadDialog = ({ open, onClose }) => {
     onClose();
   };
 
+  /**
+   * Handle file selection
+   * @param {Object} event - File selection event
+   */
   const handleFileSelect = (event) => {
     const file = event.target.files[0];
     if (file) {
@@ -83,6 +113,10 @@ const DocumentUploadDialog = ({ open, onClose }) => {
     }
   };
 
+  /**
+   * Handle tag addition
+   * @param {Object} event - Keypress event
+   */
   const handleTagAdd = () => {
     if (tagInput && !tags.includes(tagInput)) {
       setTags([...tags, tagInput]);
@@ -90,6 +124,10 @@ const DocumentUploadDialog = ({ open, onClose }) => {
     }
   };
 
+  /**
+   * Handle tag deletion
+   * @param {string} tagToDelete - Tag to remove
+   */
   const handleTagDelete = (tagToDelete) => {
     setTags(tags.filter(tag => tag !== tagToDelete));
   };

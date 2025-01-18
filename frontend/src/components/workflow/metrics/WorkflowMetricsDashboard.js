@@ -1,41 +1,41 @@
 import React, { useState, useEffect } from 'react';
 import {
   Box,
+  Container,
   Grid,
   Paper,
   Typography,
-  Card,
-  CardContent,
-  CircularProgress,
+  TextField,
+  Button,
+  IconButton,
   Select,
   MenuItem,
   FormControl,
-  InputLabel
+  InputLabel,
 } from '@mui/material';
+import {
+  Timeline,
+  TrendingUp,
+  Assessment,
+  DateRange,
+} from '@mui/icons-material';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
+import axios from 'axios';
+import { useSnackbar } from 'notistack';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
-import {
-  BarChart,
-  Bar,
-  LineChart,
-  Line,
-  PieChart,
-  Pie,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  ResponsiveContainer
-} from 'recharts';
 import { format, subDays } from 'date-fns';
-import axios from 'axios';
-import { useSnackbar } from 'notistack';
 
 const WorkflowMetricsDashboard = () => {
-  const [metrics, setMetrics] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [metrics, setMetrics] = useState({
+    totalWorkflows: 0,
+    activeWorkflows: 0,
+    completedWorkflows: 0,
+    averageCompletionTime: 0,
+  });
+
+  const [chartData, setChartData] = useState([]);
   const [dateRange, setDateRange] = useState({
     startDate: subDays(new Date(), 30),
     endDate: new Date()
@@ -49,7 +49,6 @@ const WorkflowMetricsDashboard = () => {
 
   const fetchMetrics = async () => {
     try {
-      setLoading(true);
       const response = await axios.get('/api/workflow-metrics/dashboard', {
         params: {
           startDate: format(dateRange.startDate, 'yyyy-MM-dd'),
@@ -57,190 +56,125 @@ const WorkflowMetricsDashboard = () => {
           templateId: selectedTemplate !== 'all' ? selectedTemplate : undefined
         }
       });
-      setMetrics(response.data);
+      setMetrics({
+        totalWorkflows: response.data.overview.totalWorkflows,
+        activeWorkflows: response.data.overview.activeWorkflows,
+        completedWorkflows: response.data.overview.completedWorkflows,
+        averageCompletionTime: response.data.performance.averageWorkflowDuration,
+      });
+      setChartData(Object.entries(response.data.performance.completionRateByTemplate).map(([id, rate]) => ({
+        name: id,
+        workflows: Math.round(rate)
+      })));
     } catch (error) {
       console.error('Error fetching metrics:', error);
       enqueueSnackbar('Failed to fetch metrics', { variant: 'error' });
-    } finally {
-      setLoading(false);
     }
   };
 
-  if (loading) {
-    return (
-      <Box display="flex" justifyContent="center" alignItems="center" minHeight="400px">
-        <CircularProgress />
+  const MetricCard = ({ title, value, icon: Icon }) => (
+    <Paper sx={{ p: 2 }}>
+      <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+        <Icon sx={{ mr: 1 }} />
+        <Typography variant="h6">{title}</Typography>
       </Box>
-    );
-  }
-
-  if (!metrics) {
-    return (
-      <Box p={3}>
-        <Typography variant="h6" color="error">
-          Failed to load metrics
-        </Typography>
-      </Box>
-    );
-  }
+      <Typography variant="h4">{value}</Typography>
+    </Paper>
+  );
 
   return (
-    <Box p={3}>
-      <Box mb={3} display="flex" justifyContent="space-between" alignItems="center">
-        <Typography variant="h5" gutterBottom>
-          Workflow Metrics Dashboard
-        </Typography>
-        <Box display="flex" gap={2}>
-          <LocalizationProvider dateAdapter={AdapterDateFns}>
-            <DatePicker
-              label="Start Date"
-              value={dateRange.startDate}
-              onChange={(date) => setDateRange(prev => ({ ...prev, startDate: date }))}
-              renderInput={(params) => <TextField {...params} />}
-            />
-            <DatePicker
-              label="End Date"
-              value={dateRange.endDate}
-              onChange={(date) => setDateRange(prev => ({ ...prev, endDate: date }))}
-              renderInput={(params) => <TextField {...params} />}
-            />
-          </LocalizationProvider>
-          <FormControl sx={{ minWidth: 200 }}>
-            <InputLabel>Template</InputLabel>
-            <Select
-              value={selectedTemplate}
-              onChange={(e) => setSelectedTemplate(e.target.value)}
-              label="Template"
-            >
-              <MenuItem value="all">All Templates</MenuItem>
-              {/* Add template options dynamically */}
-            </Select>
-          </FormControl>
-        </Box>
+    <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
+      <Typography variant="h4" gutterBottom>
+        Workflow Metrics
+      </Typography>
+
+      <Box sx={{ mb: 3 }}>
+        <LocalizationProvider dateAdapter={AdapterDateFns}>
+          <DatePicker
+            label="Start Date"
+            value={dateRange.startDate}
+            onChange={(date) => setDateRange(prev => ({ ...prev, startDate: date }))}
+            renderInput={(params) => <TextField {...params} />}
+          />
+          <DatePicker
+            label="End Date"
+            value={dateRange.endDate}
+            onChange={(date) => setDateRange(prev => ({ ...prev, endDate: date }))}
+            renderInput={(params) => <TextField {...params} />}
+          />
+        </LocalizationProvider>
+        <FormControl sx={{ minWidth: 200 }}>
+          <InputLabel>Template</InputLabel>
+          <Select
+            value={selectedTemplate}
+            label="Template"
+            onChange={(e) => setSelectedTemplate(e.target.value)}
+          >
+            <MenuItem value="all">All Templates</MenuItem>
+            {/* Add template options dynamically */}
+          </Select>
+        </FormControl>
       </Box>
 
       <Grid container spacing={3}>
-        {/* Overview Cards */}
-        <Grid item xs={12} md={3}>
-          <Card>
-            <CardContent>
-              <Typography color="textSecondary" gutterBottom>
-                Total Workflows
-              </Typography>
-              <Typography variant="h4">
-                {metrics.overview.totalWorkflows}
-              </Typography>
-            </CardContent>
-          </Card>
+        <Grid item xs={12} sm={6} md={3}>
+          <MetricCard
+            title="Total Workflows"
+            value={metrics.totalWorkflows}
+            icon={Timeline}
+          />
         </Grid>
-        <Grid item xs={12} md={3}>
-          <Card>
-            <CardContent>
-              <Typography color="textSecondary" gutterBottom>
-                Completed Workflows
-              </Typography>
-              <Typography variant="h4">
-                {metrics.overview.completedWorkflows}
-              </Typography>
-            </CardContent>
-          </Card>
+        <Grid item xs={12} sm={6} md={3}>
+          <MetricCard
+            title="Active Workflows"
+            value={metrics.activeWorkflows}
+            icon={TrendingUp}
+          />
         </Grid>
-        <Grid item xs={12} md={3}>
-          <Card>
-            <CardContent>
-              <Typography color="textSecondary" gutterBottom>
-                Active Workflows
-              </Typography>
-              <Typography variant="h4">
-                {metrics.overview.activeWorkflows}
-              </Typography>
-            </CardContent>
-          </Card>
+        <Grid item xs={12} sm={6} md={3}>
+          <MetricCard
+            title="Completed Workflows"
+            value={metrics.completedWorkflows}
+            icon={Assessment}
+          />
         </Grid>
-        <Grid item xs={12} md={3}>
-          <Card>
-            <CardContent>
-              <Typography color="textSecondary" gutterBottom>
-                SLA Breaches
-              </Typography>
-              <Typography variant="h4" color="error">
-                {metrics.slaCompliance.totalBreaches}
-              </Typography>
-            </CardContent>
-          </Card>
-        </Grid>
-
-        {/* Charts */}
-        <Grid item xs={12} md={6}>
-          <Paper sx={{ p: 2 }}>
-            <Typography variant="h6" gutterBottom>
-              Workflow Completion Rate
-            </Typography>
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={Object.entries(metrics.performance.completionRateByTemplate).map(([id, rate]) => ({
-                template: id,
-                rate: Math.round(rate)
-              }))}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="template" />
-                <YAxis unit="%" />
-                <Tooltip />
-                <Legend />
-                <Bar dataKey="rate" fill="#8884d8" name="Completion Rate" />
-              </BarChart>
-            </ResponsiveContainer>
-          </Paper>
-        </Grid>
-
-        <Grid item xs={12} md={6}>
-          <Paper sx={{ p: 2 }}>
-            <Typography variant="h6" gutterBottom>
-              SLA Breaches by Department
-            </Typography>
-            <ResponsiveContainer width="100%" height={300}>
-              <PieChart>
-                <Pie
-                  data={Object.entries(metrics.slaCompliance.breachesByDepartment).map(([dept, count]) => ({
-                    name: dept,
-                    value: count
-                  }))}
-                  dataKey="value"
-                  nameKey="name"
-                  cx="50%"
-                  cy="50%"
-                  outerRadius={80}
-                  fill="#82ca9d"
-                  label
-                />
-                <Tooltip />
-                <Legend />
-              </PieChart>
-            </ResponsiveContainer>
-          </Paper>
+        <Grid item xs={12} sm={6} md={3}>
+          <MetricCard
+            title="Avg. Completion Time (days)"
+            value={metrics.averageCompletionTime}
+            icon={DateRange}
+          />
         </Grid>
 
         <Grid item xs={12}>
           <Paper sx={{ p: 2 }}>
             <Typography variant="h6" gutterBottom>
-              Average Duration Trends
+              Workflow Activity
             </Typography>
-            <ResponsiveContainer width="100%" height={300}>
-              <LineChart data={[
-                { name: 'Workflows', value: metrics.performance.averageWorkflowDuration },
-                { name: 'Tasks', value: metrics.performance.averageTaskDuration }
-              ]}>
+            <Box sx={{ height: 300 }}>
+              <LineChart
+                width={800}
+                height={300}
+                data={chartData}
+                margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+              >
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="name" />
-                <YAxis unit=" hrs" />
+                <YAxis />
                 <Tooltip />
                 <Legend />
-                <Line type="monotone" dataKey="value" stroke="#8884d8" name="Duration" />
+                <Line
+                  type="monotone"
+                  dataKey="workflows"
+                  stroke="#8884d8"
+                  activeDot={{ r: 8 }}
+                />
               </LineChart>
-            </ResponsiveContainer>
+            </Box>
           </Paper>
         </Grid>
       </Grid>
-    </Box>
+    </Container>
   );
 };
 

@@ -1,0 +1,19 @@
+{
+  "name": "e-prabandhan",
+  "version": "1.0.0",
+  "description": "Document Management System",
+  "scripts": {
+    "start": "concurrently \"npm run start:backend\" \"npm run start:frontend\" \"npm run start:admin\"",
+    "start:backend": "cd backend && npm run dev",
+    "start:frontend": "cd frontend && npm start",
+    "start:admin": "cd admin-panel && npm start",
+    "install:all": "concurrently \"cd backend && npm install\" \"cd frontend && npm install\" \"cd admin-panel && npm install\"",
+    "build": "concurrently \"cd frontend && npm run build\" \"cd admin-panel && npm run build\"",
+    "test": "concurrently \"cd backend && npm test\" \"cd frontend && npm test\" \"cd admin-panel && npm test\"",
+    "migrate": "cd backend && npm run migrate",
+    "seed": "cd backend && npm run seed"
+  },
+  "dependencies": {
+    "concurrently": "^8.2.2"
+  }
+}

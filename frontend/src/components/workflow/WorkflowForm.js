@@ -1,4 +1,19 @@
+/**
+ * Workflow Form Component
+ * 
+ * A form component for creating and editing workflow templates.
+ * Features include:
+ * - Dynamic step configuration
+ * - Role assignment
+ * - SLA settings
+ * - Validation rules
+ * - Conditional routing
+ * 
+ * @component
+ */
+
 import React, { useState, useEffect } from 'react';
+import PropTypes from 'prop-types';
 import {
   Box,
   TextField,
@@ -17,6 +32,14 @@ import {
 import { Add as AddIcon, Delete as DeleteIcon } from '@mui/icons-material';
 import axios from 'axios';
 
+/**
+ * Workflow Form Component
+ * 
+ * @param {Object} props - Component props
+ * @param {string} props.fileId - File ID for workflow creation
+ * @param {function} props.onSubmit - Form submission handler
+ * @param {function} props.onCancel - Cancel handler
+ */
 const WorkflowForm = ({ fileId, onSubmit, onCancel }) => {
   const [formData, setFormData] = useState({
     name: '',
@@ -26,20 +49,26 @@ const WorkflowForm = ({ fileId, onSubmit, onCancel }) => {
   const [users, setUsers] = useState([]);
   const [error, setError] = useState('');
 
+  /**
+   * Load users data
+   */
   useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        const response = await axios.get('/api/users');
+        setUsers(response.data);
+      } catch (error) {
+        console.error('Error fetching users:', error);
+        setError('Error loading users');
+      }
+    };
     fetchUsers();
   }, []);
 
-  const fetchUsers = async () => {
-    try {
-      const response = await axios.get('/api/users');
-      setUsers(response.data);
-    } catch (error) {
-      console.error('Error fetching users:', error);
-      setError('Error loading users');
-    }
-  };
-
+  /**
+   * Handle form data changes
+   * @param {Object} e - Event object
+   */
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({
@@ -48,6 +77,12 @@ const WorkflowForm = ({ fileId, onSubmit, onCancel }) => {
     }));
   };
 
+  /**
+   * Handle step data changes
+   * @param {number} index - Index of step
+   * @param {string} field - Field name
+   * @param {string} value - New value
+   */
   const handleStepChange = (index, field, value) => {
     const newSteps = [...formData.steps];
     newSteps[index] = {
@@ -60,6 +95,9 @@ const WorkflowForm = ({ fileId, onSubmit, onCancel }) => {
     }));
   };
 
+  /**
+   * Add a new workflow step
+   */
   const addStep = () => {
     setFormData(prev => ({
       ...prev,
@@ -67,6 +105,10 @@ const WorkflowForm = ({ fileId, onSubmit, onCancel }) => {
     }));
   };
 
+  /**
+   * Remove a workflow step
+   * @param {number} index - Index of step to remove
+   */
   const removeStep = (index) => {
     if (formData.steps.length > 1) {
       const newSteps = formData.steps.filter((_, i) => i !== index);
@@ -77,6 +119,10 @@ const WorkflowForm = ({ fileId, onSubmit, onCancel }) => {
     }
   };
 
+  /**
+   * Handle form submission
+   * @param {Object} e - Event object
+   */
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');

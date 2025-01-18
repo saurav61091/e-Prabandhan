@@ -25,7 +25,8 @@ import {
 import {
   Add as AddIcon,
   Delete as DeleteIcon,
-  DragHandle as DragHandleIcon
+  DragHandle as DragHandleIcon,
+  Edit as EditIcon
 } from '@mui/icons-material';
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 import { useNavigate, useParams } from 'react-router-dom';

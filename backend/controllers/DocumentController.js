@@ -1,14 +1,44 @@
+/**
+ * Document Controller
+ * 
+ * Handles all document-related operations including:
+ * - Document upload and download
+ * - Document metadata management
+ * - Document versioning
+ * - Document search and filtering
+ * - Access control and permissions
+ * 
+ * @module controllers/documentController
+ */
+
 const BaseController = require('./BaseController');
 const DocumentService = require('../services/DocumentService');
 const { validateFileType, validateFileSize } = require('../utils/validators');
 const fs = require('fs').promises;
 
+/**
+ * Document Controller class
+ * 
+ * @class DocumentController
+ * @extends BaseController
+ */
 class DocumentController extends BaseController {
+  /**
+   * Constructor
+   * 
+   * Initializes the controller with a DocumentService instance
+   */
   constructor() {
     super(new DocumentService());
   }
 
-  // Upload new document
+  /**
+   * Upload a new document
+   * 
+   * @param {Object} req - Express request object
+   * @param {Object} req.file - Uploaded file object from multer
+   * @param {Object} res - Express response object
+   */
   uploadDocument = this.handleAsync(async (req, res) => {
     const { file } = req;
     if (!file) {
@@ -46,7 +76,13 @@ class DocumentController extends BaseController {
     });
   });
 
-  // Get document details with versions
+  /**
+   * Get document details with versions
+   * 
+   * @param {Object} req - Express request object
+   * @param {string} req.params.id - Document ID
+   * @param {Object} res - Express response object
+   */
   getDocument = this.handleAsync(async (req, res) => {
     const { id } = req.params;
     const document = await this.service.getWithVersions(id, req.user.id);
@@ -57,7 +93,14 @@ class DocumentController extends BaseController {
     });
   });
 
-  // Upload new version
+  /**
+   * Upload a new version of a document
+   * 
+   * @param {Object} req - Express request object
+   * @param {string} req.params.id - Document ID
+   * @param {Object} req.file - Uploaded file object from multer
+   * @param {Object} res - Express response object
+   */
   uploadVersion = this.handleAsync(async (req, res) => {
     const { id } = req.params;
     const { file } = req;
@@ -94,7 +137,13 @@ class DocumentController extends BaseController {
     });
   });
 
-  // Download document
+  /**
+   * Download a document
+   * 
+   * @param {Object} req - Express request object
+   * @param {string} req.params.id - Document ID
+   * @param {Object} res - Express response object
+   */
   downloadDocument = this.handleAsync(async (req, res) => {
     const { id } = req.params;
     const fileInfo = await this.service.getFile(id, req.user.id);
@@ -107,7 +156,13 @@ class DocumentController extends BaseController {
     });
   });
 
-  // Search documents
+  /**
+   * Search documents
+   * 
+   * @param {Object} req - Express request object
+   * @param {Object} req.query - Query parameters for search and filtering
+   * @param {Object} res - Express response object
+   */
   searchDocuments = this.handleAsync(async (req, res) => {
     const { query, ...filters } = req.query;
     const results = await this.service.searchDocuments(
@@ -122,7 +177,13 @@ class DocumentController extends BaseController {
     });
   });
 
-  // Get document thumbnail
+  /**
+   * Get document thumbnail
+   * 
+   * @param {Object} req - Express request object
+   * @param {string} req.params.id - Document ID
+   * @param {Object} res - Express response object
+   */
   getThumbnail = this.handleAsync(async (req, res) => {
     const { id } = req.params;
     const document = await this.service.findById(id);
@@ -137,7 +198,14 @@ class DocumentController extends BaseController {
     res.sendFile(document.thumbnailPath);
   });
 
-  // Delete document version
+  /**
+   * Delete a document version
+   * 
+   * @param {Object} req - Express request object
+   * @param {string} req.params.id - Document ID
+   * @param {string} req.params.versionId - Version ID
+   * @param {Object} res - Express response object
+   */
   deleteVersion = this.handleAsync(async (req, res) => {
     const { id, versionId } = req.params;
 
@@ -156,7 +224,13 @@ class DocumentController extends BaseController {
     });
   });
 
-  // Archive document
+  /**
+   * Archive a document
+   * 
+   * @param {Object} req - Express request object
+   * @param {string} req.params.id - Document ID
+   * @param {Object} res - Express response object
+   */
   archiveDocument = this.handleAsync(async (req, res) => {
     const { id } = req.params;
 
@@ -175,7 +249,13 @@ class DocumentController extends BaseController {
     });
   });
 
-  // Restore archived document
+  /**
+   * Restore an archived document
+   * 
+   * @param {Object} req - Express request object
+   * @param {string} req.params.id - Document ID
+   * @param {Object} res - Express response object
+   */
   restoreDocument = this.handleAsync(async (req, res) => {
     const { id } = req.params;
 
@@ -194,7 +274,13 @@ class DocumentController extends BaseController {
     });
   });
 
-  // Get document statistics
+  /**
+   * Get document statistics
+   * 
+   * @param {Object} req - Express request object
+   * @param {string} req.query.departmentId - Department ID
+   * @param {Object} res - Express response object
+   */
   getStatistics = this.handleAsync(async (req, res) => {
     const { departmentId } = req.query;
     const stats = await this.service.getStatistics(departmentId);

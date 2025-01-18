@@ -17,13 +17,6 @@ import {
   CircularProgress,
   Chip,
   Grid,
-  Timeline,
-  TimelineItem,
-  TimelineSeparator,
-  TimelineConnector,
-  TimelineContent,
-  TimelineDot,
-  TimelineOppositeContent
 } from '@mui/material';
 import {
   CheckCircle as CheckCircleIcon,
@@ -35,6 +28,15 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useSnackbar } from 'notistack';
 import { format } from 'date-fns';
 import axios from 'axios';
+import {
+  Timeline,
+  TimelineItem,
+  TimelineOppositeContent,
+  TimelineSeparator,
+  TimelineDot,
+  TimelineConnector,
+  TimelineContent
+} from '@mui/lab';
 
 const getStepIcon = (status) => {
   switch (status) {
@@ -282,7 +284,7 @@ const WorkflowViewer = () => {
                 Activity Timeline
               </Typography>
               
-              <Timeline>
+              <Timeline position="alternate">
                 {workflow.steps.map((step) => (
                   <TimelineItem key={step.id}>
                     <TimelineOppositeContent color="textSecondary">

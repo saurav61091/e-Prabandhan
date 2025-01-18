@@ -1,3 +1,17 @@
+/**
+ * Document Grid Component
+ * 
+ * A responsive grid layout for displaying document cards.
+ * Features include:
+ * - Responsive grid layout
+ * - Empty state handling
+ * - Loading state
+ * - Infinite scroll
+ * - Document filtering and sorting
+ * 
+ * @component
+ */
+
 import React from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import {
@@ -25,6 +39,11 @@ import {
   setFilters
 } from '../../store/slices/documentSlice';
 
+/**
+ * Sort options for the document grid
+ * 
+ * @type {Array}
+ */
 const sortOptions = [
   { value: 'createdAt_desc', label: 'Newest First' },
   { value: 'createdAt_asc', label: 'Oldest First' },
@@ -32,12 +51,22 @@ const sortOptions = [
   { value: 'title_desc', label: 'Title Z-A' }
 ];
 
+/**
+ * Document Grid Component
+ * 
+ * @returns {JSX.Element} Document grid component
+ */
 const DocumentGrid = () => {
   const dispatch = useDispatch();
   const [uploadDialogOpen, setUploadDialogOpen] = React.useState(false);
   const [page, setPage] = React.useState(1);
   const [sortBy, setSortBy] = React.useState('createdAt_desc');
   
+  /**
+   * Get documents, pagination, loading, and error from the Redux store
+   * 
+   * @type {Object}
+   */
   const { 
     documents,
     pagination,
@@ -45,6 +74,11 @@ const DocumentGrid = () => {
     error
   } = useSelector(state => state.document);
 
+  /**
+   * Get search query, set query, search, and search loading from the useSearch hook
+   * 
+   * @type {Object}
+   */
   const {
     query,
     setQuery,
@@ -56,6 +90,11 @@ const DocumentGrid = () => {
     autoSearch: true
   });
 
+  /**
+   * Handle fetch documents on component mount and when page, sortBy, or query changes
+   * 
+   * @type {function}
+   */
   React.useEffect(() => {
     const [field, order] = sortBy.split('_');
     dispatch(fetchDocuments({
@@ -66,19 +105,41 @@ const DocumentGrid = () => {
     }));
   }, [dispatch, page, sortBy, query]);
 
+  /**
+   * Handle sort change
+   * 
+   * @param {Object} event - Event object
+   */
   const handleSortChange = (event) => {
     setSortBy(event.target.value);
     setPage(1);
   };
 
+  /**
+   * Handle page change
+   * 
+   * @param {Object} event - Event object
+   * @param {number} value - New page number
+   */
   const handlePageChange = (event, value) => {
     setPage(value);
   };
 
+  /**
+   * Handle upload
+   * 
+   * @type {function}
+   */
   const handleUpload = () => {
     setUploadDialogOpen(true);
   };
 
+  /**
+   * Handle delete
+   * 
+   * @param {string} documentId - ID of the document to delete
+   * @type {function}
+   */
   const handleDelete = async (documentId) => {
     try {
       await dispatch(deleteDocument(documentId)).unwrap();
@@ -93,6 +154,7 @@ const DocumentGrid = () => {
     }
   };
 
+  // Show loading state
   if (loading || searchLoading) {
     return <LoadingState />;
   }

@@ -1,3 +1,17 @@
+/**
+ * Login Form Component
+ * 
+ * A form component for user authentication.
+ * Features include:
+ * - Email and password authentication
+ * - Form validation
+ * - Error handling
+ * - Password visibility toggle
+ * - Links to forgot password and registration
+ * 
+ * @component
+ */
+
 import React from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
@@ -23,12 +37,20 @@ import { login } from '../../store/slices/authSlice';
 import FormError from '../common/FormError';
 import ErrorAlert from '../common/ErrorAlert';
 
+/**
+ * Login Form Component
+ * 
+ * @returns {JSX.Element} Login form component
+ */
 const LoginForm = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = React.useState(false);
   const { loading, error } = useSelector(state => state.auth);
 
+  /**
+   * Initialize form with Formik
+   */
   const formik = useFormik({
     initialValues: {
       email: '',
@@ -45,6 +67,9 @@ const LoginForm = () => {
     }
   });
 
+  /**
+   * Toggle password visibility
+   */
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword);
   };
@@ -67,6 +92,7 @@ const LoginForm = () => {
           />
         )}
 
+        {/* Email field */}
         <TextField
           fullWidth
           id="email"
@@ -80,6 +106,7 @@ const LoginForm = () => {
           margin="normal"
         />
 
+        {/* Password field */}
         <TextField
           fullWidth
           id="password"
@@ -118,6 +145,7 @@ const LoginForm = () => {
           </Link>
         </Box>
 
+        {/* Submit button */}
         <Button
           fullWidth
           type="submit"

@@ -5,7 +5,7 @@ import workflowReducer from './slices/workflowSlice';
 import departmentReducer from './slices/departmentSlice';
 import uiReducer from './slices/uiSlice';
 
-export const store = configureStore({
+const store = configureStore({
   reducer: {
     auth: authReducer,
     document: documentReducer,
@@ -16,11 +16,8 @@ export const store = configureStore({
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
       serializableCheck: {
-        // Ignore these action types
         ignoredActions: ['auth/login/fulfilled', 'document/upload/fulfilled'],
-        // Ignore these field paths in all actions
         ignoredActionPaths: ['payload.file', 'meta.arg.file'],
-        // Ignore these paths in the state
         ignoredPaths: ['document.currentFile']
       }
     })
@@ -29,3 +26,5 @@ export const store = configureStore({
 // Helper hooks for accessing the store
 export const getState = store.getState;
 export const dispatch = store.dispatch;
+
+export default store;

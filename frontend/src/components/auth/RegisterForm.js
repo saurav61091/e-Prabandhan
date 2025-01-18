@@ -1,3 +1,17 @@
+/**
+ * Registration Form Component
+ * 
+ * A form component for new user registration.
+ * Features include:
+ * - User details collection (username, email, password, department, phone)
+ * - Password strength validation
+ * - Form validation
+ * - Error handling
+ * - Password visibility toggle
+ * 
+ * @component
+ */
+
 import React from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
@@ -25,6 +39,16 @@ import { register } from '../../store/slices/authSlice';
 import FormError from '../common/FormError';
 import ErrorAlert from '../common/ErrorAlert';
 
+/**
+ * Validation schema for registration form
+ */
+const validationSchema = registerSchema;
+
+/**
+ * Registration Form Component
+ * 
+ * @returns {JSX.Element} Registration form component
+ */
 const RegisterForm = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -33,6 +57,9 @@ const RegisterForm = () => {
   const { loading, error } = useSelector(state => state.auth);
   const departments = useSelector(state => state.department.departments);
 
+  /**
+   * Initialize form with Formik
+   */
   const formik = useFormik({
     initialValues: {
       username: '',
@@ -42,7 +69,7 @@ const RegisterForm = () => {
       department: '',
       phone: ''
     },
-    validationSchema: registerSchema,
+    validationSchema,
     onSubmit: async (values) => {
       try {
         await dispatch(register(values)).unwrap();
@@ -53,6 +80,10 @@ const RegisterForm = () => {
     }
   });
 
+  /**
+   * Toggle password visibility
+   * @param {string} field - Field name (password or confirmPassword)
+   */
   const togglePasswordVisibility = (field) => {
     if (field === 'password') {
       setShowPassword(!showPassword);

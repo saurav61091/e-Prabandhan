@@ -1,3 +1,18 @@
+/**
+ * Reset Password Form Component
+ * 
+ * A form component for resetting user password.
+ * Features include:
+ * - Password strength validation
+ * - Password confirmation
+ * - Form validation
+ * - Error handling
+ * - Password visibility toggle
+ * - Token validation
+ * 
+ * @component
+ */
+
 import React from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -21,6 +36,11 @@ import { resetPasswordSchema } from '../../validation/authSchemas';
 import FormError from '../common/FormError';
 import ErrorAlert from '../common/ErrorAlert';
 
+/**
+ * Reset Password Form Component
+ * 
+ * @returns {JSX.Element} Reset password form component
+ */
 const ResetPasswordForm = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -30,6 +50,9 @@ const ResetPasswordForm = () => {
   const [success, setSuccess] = React.useState(false);
   const { loading, error } = useSelector(state => state.auth);
 
+  /**
+   * Initialize form with Formik
+   */
   const formik = useFormik({
     initialValues: {
       password: '',
@@ -47,6 +70,10 @@ const ResetPasswordForm = () => {
     }
   });
 
+  /**
+   * Toggle password visibility
+   * @param {string} field - Field name (password or confirmPassword)
+   */
   const togglePasswordVisibility = (field) => {
     if (field === 'password') {
       setShowPassword(!showPassword);

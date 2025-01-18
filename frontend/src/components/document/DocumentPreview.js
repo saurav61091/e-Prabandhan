@@ -1,65 +1,154 @@
-import React from 'react';
+/**
+ * Document Preview Component
+ * 
+ * A modal component that displays document preview and details.
+ * Features include:
+ * - Document content preview
+ * - Metadata display
+ * - Version history
+ * - Comments section
+ * - Action buttons
+ * 
+ * @component
+ */
+
+import React, { useState, useEffect } from 'react';
+import PropTypes from 'prop-types';
 import {
   Dialog,
   DialogTitle,
   DialogContent,
   DialogActions,
   Button,
-  Box,
   Typography,
+  Box,
+  Tabs,
+  Tab,
   IconButton,
-  Chip,
   Divider,
-  Tooltip,
-  CircularProgress
+  Chip,
+  CircularProgress,
+  Alert
 } from '@mui/material';
 import {
   Close as CloseIcon,
   Download as DownloadIcon,
-  Print as PrintIcon,
   Share as ShareIcon,
-  Edit as EditIcon,
-  History as HistoryIcon,
-  Description as DocumentIcon,
-  PictureAsPdf as PdfIcon,
-  Image as ImageIcon
+  Edit as EditIcon
 } from '@mui/icons-material';
-import { formatDistanceToNow, format } from 'date-fns';
+import { useDispatch } from 'react-redux';
+import { formatDistanceToNow } from 'date-fns';
+import DocumentViewer from './DocumentViewer';
+import CommentsSection from './CommentsSection';
+import VersionHistory from './VersionHistory';
+import { downloadDocument } from '../../store/slices/documentSlice';
+import { usePermissions } from '../../hooks/usePermissions';
 
+/**
+ * TabPanel Component for Document Preview tabs
+ * 
+ * @param {Object} props - Component props
+ * @param {number} props.value - Current tab value
+ * @param {number} props.index - Tab index
+ * @param {ReactNode} props.children - Tab content
+ */
+function TabPanel({ children, value, index, ...other }) {
+  return (
+    <div
+      role="tabpanel"
+      hidden={value !== index}
+      id={`document-preview-tabpanel-${index}`}
+      aria-labelledby={`document-preview-tab-${index}`}
+      {...other}
+    >
+      {value === index && (
+        <Box sx={{ p: 3 }}>
+          {children}
+        </Box>
+      )}
+    </div>
+  );
+}
+
+/**
+ * Document Preview Component
+ * 
+ * @param {Object} props - Component props
+ * @param {Object} props.document - Document object to preview
+ * @param {boolean} props.open - Dialog open state
+ * @param {function} props.onClose - Dialog close handler
+ * @param {function} props.onEdit - Edit document handler
+ * @param {function} props.onShare - Share document handler
+ */
 const DocumentPreview = ({
+  document,
   open,
   onClose,
-  document,
+  onEdit,
+  onShare,
   onDownload,
   onPrint,
-  onShare,
-  onEdit,
   onVersionHistory
 }) => {
-  const [loading, setLoading] = React.useState(true);
-  const [error, setError] = React.useState(null);
-  const previewRef = React.useRef(null);
+  const [activeTab, setActiveTab] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const dispatch = useDispatch();
+  const { canEdit, canShare } = usePermissions();
 
-  React.useEffect(() => {
-    if (document?.url) {
+  /**
+   * Load document preview
+   */
+  useEffect(() => {
+    if (document && open) {
       setLoading(true);
       setError(null);
-
-      // Load preview based on file type
-      const loadPreview = async () => {
-        try {
-          // Add preview loading logic here based on file type
-          // For example, using PDF.js for PDFs or image loading for images
+      // Load preview content
+      loadDocumentPreview(document.id)
+        .then(() => setLoading(false))
+        .catch(err => {
+          setError(err.message);
           setLoading(false);
-        } catch (err) {
-          setError('Failed to load preview');
-          setLoading(false);
-        }
-      };
-
-      loadPreview();
+        });
     }
-  }, [document]);
+  }, [document, open]);
+
+  /**
+   * Handle tab change
+   * @param {Object} event - Change event
+   * @param {number} newValue - New tab index
+   */
+  const handleTabChange = (event, newValue) => {
+    setActiveTab(newValue);
+  };
+
+  /**
+   * Handle document download
+   */
+  const handleDownload = async () => {
+    try {
+      await dispatch(downloadDocument(document.id)).unwrap();
+    } catch (error) {
+      console.error('Download failed:', error);
+    }
+  };
+
+  /**
+   * Get status chip color based on document status
+   * @returns {string} Material-UI color
+   */
+  const getStatusColor = () => {
+    switch (document.status) {
+      case 'approved':
+        return 'success';
+      case 'pending':
+        return 'warning';
+      case 'rejected':
+        return 'error';
+      default:
+        return 'default';
+    }
+  };
 
   const getFileIcon = () => {
     if (!document?.fileType) return <DocumentIcon />;
@@ -150,11 +239,7 @@ const DocumentPreview = ({
       onClose={onClose}
       maxWidth="lg"
       fullWidth
-      PaperProps={{
-        sx: {
-          height: 'calc(100vh - 64px)'
-        }
-      }}
+      scroll="paper"
     >
       <DialogTitle>
         <Box display="flex" alignItems="center" justifyContent="space-between">
@@ -170,93 +255,122 @@ const DocumentPreview = ({
         </Box>
       </DialogTitle>
 
-      <Divider />
+      <DialogContent dividers>
+        {loading ? (
+          <Box display="flex" justifyContent="center" p={3}>
+            <CircularProgress />
+          </Box>
+        ) : error ? (
+          <Alert severity="error">{error}</Alert>
+        ) : (
+          <>
+            {/* Document metadata */}
+            <Box mb={2}>
+              <Grid container spacing={2} alignItems="center">
+                <Grid item>
+                  <Chip
+                    label={document.status}
+                    color={getStatusColor()}
+                    size="small"
+                  />
+                </Grid>
+                <Grid item>
+                  <Typography variant="body2" color="text.secondary">
+                    Last updated {formatDistanceToNow(new Date(document.updatedAt))} ago
+                  </Typography>
+                </Grid>
+                {document.tags?.map(tag => (
+                  <Grid item key={tag}>
+                    <Chip label={tag} size="small" variant="outlined" />
+                  </Grid>
+                ))}
+              </Grid>
+            </Box>
 
-      <Box sx={{ px: 3, py: 2, bgcolor: 'background.default' }}>
-        <Box display="flex" alignItems="center" gap={2} mb={2}>
-          <Chip
-            label={document?.status}
-            color={
-              document?.status === 'approved' ? 'success' :
-              document?.status === 'rejected' ? 'error' :
-              document?.status === 'pending' ? 'warning' : 'default'
-            }
-            size="small"
-          />
-          <Typography variant="body2" color="text.secondary">
-            Last updated {formatDistanceToNow(new Date(document?.updatedAt), { addSuffix: true })}
-          </Typography>
-        </Box>
+            <Divider />
 
-        <Typography variant="body2" color="text.secondary" paragraph>
-          {document?.description}
-        </Typography>
+            {/* Tabs */}
+            <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+              <Tabs value={activeTab} onChange={handleTabChange}>
+                <Tab label="Preview" />
+                <Tab label="Comments" />
+                <Tab label="Version History" />
+              </Tabs>
+            </Box>
 
-        <Box display="flex" flexWrap="wrap" gap={1}>
-          {document?.tags?.map((tag) => (
-            <Chip
-              key={tag}
-              label={tag}
-              size="small"
-              variant="outlined"
-            />
-          ))}
-        </Box>
-      </Box>
+            {/* Preview tab */}
+            <TabPanel value={activeTab} index={0}>
+              {renderPreview()}
+            </TabPanel>
 
-      <DialogContent sx={{ p: 0, overflow: 'hidden' }}>
-        {renderPreview()}
+            {/* Comments tab */}
+            <TabPanel value={activeTab} index={1}>
+              <CommentsSection documentId={document.id} />
+            </TabPanel>
+
+            {/* Version history tab */}
+            <TabPanel value={activeTab} index={2}>
+              <VersionHistory documentId={document.id} />
+            </TabPanel>
+          </>
+        )}
       </DialogContent>
 
-      <Divider />
-
-      <DialogActions sx={{ px: 3, py: 2 }}>
-        <Box display="flex" gap={1}>
-          <Tooltip title="Download">
-            <Button
-              startIcon={<DownloadIcon />}
-              onClick={onDownload}
-            >
-              Download
-            </Button>
-          </Tooltip>
-          <Tooltip title="Print">
-            <Button
-              startIcon={<PrintIcon />}
-              onClick={onPrint}
-            >
-              Print
-            </Button>
-          </Tooltip>
-          <Tooltip title="Share">
-            <Button
-              startIcon={<ShareIcon />}
-              onClick={onShare}
-            >
-              Share
-            </Button>
-          </Tooltip>
-          <Tooltip title="Version History">
-            <Button
-              startIcon={<HistoryIcon />}
-              onClick={onVersionHistory}
-            >
-              History
-            </Button>
-          </Tooltip>
-          <Tooltip title="Edit">
-            <Button
-              variant="contained"
-              startIcon={<EditIcon />}
-              onClick={onEdit}
-            >
-              Edit
-            </Button>
-          </Tooltip>
-        </Box>
+      <DialogActions>
+        <Button
+          startIcon={<DownloadIcon />}
+          onClick={onDownload}
+        >
+          Download
+        </Button>
+        <Button
+          startIcon={<PrintIcon />}
+          onClick={onPrint}
+        >
+          Print
+        </Button>
+        <Button
+          startIcon={<ShareIcon />}
+          onClick={onShare}
+        >
+          Share
+        </Button>
+        <Button
+          startIcon={<HistoryIcon />}
+          onClick={onVersionHistory}
+        >
+          History
+        </Button>
+        {canEdit && (
+          <Button
+            startIcon={<EditIcon />}
+            onClick={onEdit}
+            color="primary"
+          >
+            Edit
+          </Button>
+        )}
       </DialogActions>
     </Dialog>
   );
+};
+
+DocumentPreview.propTypes = {
+  document: PropTypes.shape({
+    id: PropTypes.string.isRequired,
+    title: PropTypes.string.isRequired,
+    description: PropTypes.string,
+    status: PropTypes.string.isRequired,
+    updatedAt: PropTypes.string.isRequired,
+    tags: PropTypes.arrayOf(PropTypes.string)
+  }),
+  open: PropTypes.bool.isRequired,
+  onClose: PropTypes.func.isRequired,
+  onEdit: PropTypes.func,
+  onShare: PropTypes.func,
+  onDownload: PropTypes.func.isRequired,
+  onPrint: PropTypes.func.isRequired,
+  onVersionHistory: PropTypes.func.isRequired
 };
 
 export default DocumentPreview;

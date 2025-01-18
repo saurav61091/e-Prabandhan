@@ -1,10 +1,37 @@
+/**
+ * Workflow Controller
+ * 
+ * Handles all workflow-related operations including:
+ * - Creating and managing workflow templates
+ * - Starting workflow instances
+ * - Processing workflow steps
+ * - Managing workflow assignments and transitions
+ * 
+ * @module controllers/workflowController
+ */
+
 const WorkflowTemplate = require('../models/WorkflowTemplate');
 const WorkflowInstance = require('../models/WorkflowInstance');
 const WorkflowStep = require('../models/WorkflowStep');
 const workflowEngine = require('../services/workflowEngine');
 const { Op } = require('sequelize');
 
-// Template Management
+/**
+ * Template Management
+ * 
+ * Handles creation, retrieval, update, and deletion of workflow templates.
+ */
+
+/**
+ * Create a new workflow template
+ * 
+ * @param {Object} req - Express request object
+ * @param {Object} req.body - Request body containing workflow details
+ * @param {string} req.body.name - Name of the workflow
+ * @param {string} req.body.description - Description of the workflow
+ * @param {Array} req.body.steps - Array of workflow steps
+ * @param {Object} res - Express response object
+ */
 const createTemplate = async (req, res) => {
   try {
     const template = await WorkflowTemplate.create({
@@ -18,6 +45,12 @@ const createTemplate = async (req, res) => {
   }
 };
 
+/**
+ * Get all workflow templates
+ * 
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object
+ */
 const getAllTemplates = async (req, res) => {
   try {
     const where = {};
@@ -40,6 +73,12 @@ const getAllTemplates = async (req, res) => {
   }
 };
 
+/**
+ * Get a workflow template by ID
+ * 
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object
+ */
 const getTemplateById = async (req, res) => {
   try {
     const template = await WorkflowTemplate.findByPk(req.params.id);
@@ -52,6 +91,12 @@ const getTemplateById = async (req, res) => {
   }
 };
 
+/**
+ * Update a workflow template
+ * 
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object
+ */
 const updateTemplate = async (req, res) => {
   try {
     const template = await WorkflowTemplate.findByPk(req.params.id);
@@ -70,6 +115,12 @@ const updateTemplate = async (req, res) => {
   }
 };
 
+/**
+ * Delete a workflow template
+ * 
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object
+ */
 const deleteTemplate = async (req, res) => {
   try {
     const template = await WorkflowTemplate.findByPk(req.params.id);
@@ -88,7 +139,18 @@ const deleteTemplate = async (req, res) => {
   }
 };
 
-// Workflow Instance Management
+/**
+ * Workflow Instance Management
+ * 
+ * Handles creation, retrieval, and cancellation of workflow instances.
+ */
+
+/**
+ * Start a new workflow instance
+ * 
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object
+ */
 const startWorkflow = async (req, res) => {
   try {
     const { fileId, templateId } = req.body;
@@ -99,6 +161,12 @@ const startWorkflow = async (req, res) => {
   }
 };
 
+/**
+ * Get all workflow instances for a file
+ * 
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object
+ */
 const getWorkflowsByFile = async (req, res) => {
   try {
     const workflows = await WorkflowInstance.findAll({
@@ -121,6 +189,12 @@ const getWorkflowsByFile = async (req, res) => {
   }
 };
 
+/**
+ * Get a workflow instance by ID
+ * 
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object
+ */
 const getWorkflowById = async (req, res) => {
   try {
     const workflow = await WorkflowInstance.findByPk(req.params.id, {
@@ -146,6 +220,12 @@ const getWorkflowById = async (req, res) => {
   }
 };
 
+/**
+ * Cancel a workflow instance
+ * 
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object
+ */
 const cancelWorkflow = async (req, res) => {
   try {
     const workflow = await WorkflowInstance.findByPk(req.params.id);
@@ -190,7 +270,18 @@ const cancelWorkflow = async (req, res) => {
   }
 };
 
-// Step Management
+/**
+ * Step Management
+ * 
+ * Handles processing and reassignment of workflow steps.
+ */
+
+/**
+ * Process a workflow step
+ * 
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object
+ */
 const processStep = async (req, res) => {
   try {
     const { action, remarks, formData } = req.body;
@@ -204,6 +295,12 @@ const processStep = async (req, res) => {
   }
 };
 
+/**
+ * Reassign a workflow step
+ * 
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object
+ */
 const reassignStep = async (req, res) => {
   try {
     const { assignTo } = req.body;
@@ -244,6 +341,12 @@ const reassignStep = async (req, res) => {
   }
 };
 
+/**
+ * Get all tasks assigned to the current user
+ * 
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object
+ */
 const getMyTasks = async (req, res) => {
   try {
     const steps = await WorkflowStep.findAll({

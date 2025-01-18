@@ -1,66 +1,130 @@
-import React from 'react';
+/**
+ * Document Card Component
+ * 
+ * A card component that displays document information in a grid layout.
+ * Features include:
+ * - Document preview thumbnail
+ * - Basic metadata display
+ * - Action buttons for common operations
+ * - Status indicators
+ * - Context menu for additional actions
+ * 
+ * @component
+ */
+
+import React, { useState } from 'react';
+import PropTypes from 'prop-types';
 import {
   Card,
   CardContent,
-  CardActions,
+  CardMedia,
   Typography,
   IconButton,
-  Chip,
-  Box,
   Menu,
   MenuItem,
-  ListItemIcon,
-  ListItemText,
-  Tooltip,
+  Chip,
+  Box,
   CardActionArea
 } from '@mui/material';
 import {
-  MoreVert as MoreIcon,
+  MoreVert as MoreVertIcon,
+  Description as DescriptionIcon,
   Download as DownloadIcon,
-  Delete as DeleteIcon,
-  Edit as EditIcon,
   Share as ShareIcon,
-  Visibility as ViewIcon,
-  History as HistoryIcon,
-  Description as DocumentIcon
+  Delete as DeleteIcon,
+  History as HistoryIcon
 } from '@mui/icons-material';
+import { useDispatch } from 'react-redux';
 import { formatDistanceToNow } from 'date-fns';
+import { downloadDocument, deleteDocument } from '../../store/slices/documentSlice';
+import { usePermissions } from '../../hooks/usePermissions';
 
+/**
+ * Document Card Component
+ * 
+ * @param {Object} props - Component props
+ * @param {Object} props.document - Document data object
+ * @param {function} props.onView - Handler for document view action
+ * @param {function} props.onShare - Handler for document share action
+ * @param {function} props.onVersionHistory - Handler for version history view
+ * @param {function} props.onDelete - Handler for document deletion
+ */
 const DocumentCard = ({
   document,
   onView,
-  onEdit,
-  onDelete,
-  onDownload,
   onShare,
-  onVersionHistory
+  onVersionHistory,
+  onDelete
 }) => {
-  const [anchorEl, setAnchorEl] = React.useState(null);
-  const open = Boolean(anchorEl);
+  // State for context menu
+  const [anchorEl, setAnchorEl] = useState(null);
+  const dispatch = useDispatch();
+  const { canDelete, canShare } = usePermissions();
 
-  const handleMenuClick = (event) => {
+  /**
+   * Handle context menu open
+   * @param {Object} event - Click event
+   */
+  const handleMenuOpen = (event) => {
     event.stopPropagation();
     setAnchorEl(event.currentTarget);
   };
 
+  /**
+   * Handle context menu close
+   */
   const handleMenuClose = () => {
     setAnchorEl(null);
   };
 
-  const handleAction = (action) => (event) => {
-    event.stopPropagation();
+  /**
+   * Handle document download
+   * Dispatches download action
+   */
+  const handleDownload = async () => {
+    try {
+      await dispatch(downloadDocument(document.id)).unwrap();
+    } catch (error) {
+      console.error('Download failed:', error);
+    }
     handleMenuClose();
-    action();
   };
 
-  const getStatusColor = (status) => {
-    switch (status.toLowerCase()) {
-      case 'draft':
-        return 'default';
-      case 'pending':
-        return 'warning';
+  /**
+   * Handle document deletion
+   * Shows confirmation dialog before deleting
+   */
+  const handleDelete = async () => {
+    if (window.confirm('Are you sure you want to delete this document?')) {
+      try {
+        await dispatch(deleteDocument(document.id)).unwrap();
+        onDelete?.(document.id);
+      } catch (error) {
+        console.error('Delete failed:', error);
+      }
+    }
+    handleMenuClose();
+  };
+
+  /**
+   * Get appropriate icon for document type
+   * @returns {React.Component} Icon component
+   */
+  const getDocumentIcon = () => {
+    // Add more icons based on document type
+    return <DescriptionIcon sx={{ fontSize: 40 }} />;
+  };
+
+  /**
+   * Get status chip color
+   * @returns {string} Material-UI color
+   */
+  const getStatusColor = () => {
+    switch (document.status) {
       case 'approved':
         return 'success';
+      case 'pending':
+        return 'warning';
       case 'rejected':
         return 'error';
       default:
@@ -69,134 +133,93 @@ const DocumentCard = ({
   };
 
   return (
-    <Card 
-      elevation={1}
-      sx={{
-        height: '100%',
-        display: 'flex',
-        flexDirection: 'column',
-        '&:hover': {
-          boxShadow: 3
-        }
-      }}
-    >
-      <CardActionArea onClick={onView}>
-        <CardContent>
-          <Box display="flex" alignItems="center" gap={1} mb={1}>
-            <DocumentIcon color="primary" />
-            <Typography variant="subtitle1" noWrap>
-              {document.title}
-            </Typography>
-          </Box>
-
-          <Typography
-            variant="body2"
-            color="text.secondary"
-            sx={{
-              display: '-webkit-box',
-              WebkitLineClamp: 2,
-              WebkitBoxOrient: 'vertical',
-              overflow: 'hidden',
-              mb: 2,
-              height: '40px'
-            }}
-          >
+    <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+      <CardActionArea onClick={() => onView(document)}>
+        <CardMedia
+          component="div"
+          sx={{
+            pt: '56.25%',
+            position: 'relative',
+            bgcolor: 'grey.100',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center'
+          }}
+        >
+          {getDocumentIcon()}
+        </CardMedia>
+        <CardContent sx={{ flexGrow: 1 }}>
+          <Typography gutterBottom variant="h6" component="h2" noWrap>
+            {document.title}
+          </Typography>
+          <Typography variant="body2" color="text.secondary" noWrap>
             {document.description}
           </Typography>
-
-          <Box display="flex" flexWrap="wrap" gap={0.5} mb={2}>
-            {document.tags?.slice(0, 3).map((tag) => (
-              <Chip
-                key={tag}
-                label={tag}
-                size="small"
-                variant="outlined"
-              />
-            ))}
-            {document.tags?.length > 3 && (
-              <Chip
-                label={`+${document.tags.length - 3}`}
-                size="small"
-                variant="outlined"
-              />
-            )}
-          </Box>
-
-          <Box display="flex" justifyContent="space-between" alignItems="center">
+          <Box sx={{ mt: 1 }}>
             <Chip
               label={document.status}
               size="small"
-              color={getStatusColor(document.status)}
+              color={getStatusColor()}
+              sx={{ mr: 1 }}
             />
             <Typography variant="caption" color="text.secondary">
-              {formatDistanceToNow(new Date(document.updatedAt), { addSuffix: true })}
+              Updated {formatDistanceToNow(new Date(document.updatedAt))} ago
             </Typography>
           </Box>
         </CardContent>
       </CardActionArea>
 
-      <CardActions sx={{ mt: 'auto', justifyContent: 'flex-end' }}>
-        <Tooltip title="View">
-          <IconButton size="small" onClick={onView}>
-            <ViewIcon fontSize="small" />
-          </IconButton>
-        </Tooltip>
-        <Tooltip title="Download">
-          <IconButton size="small" onClick={onDownload}>
-            <DownloadIcon fontSize="small" />
-          </IconButton>
-        </Tooltip>
-        <IconButton
-          size="small"
-          onClick={handleMenuClick}
-          aria-label="more options"
-          aria-controls={open ? 'document-menu' : undefined}
-          aria-haspopup="true"
-          aria-expanded={open ? 'true' : undefined}
-        >
-          <MoreIcon fontSize="small" />
+      <Box sx={{ p: 1, display: 'flex', justifyContent: 'flex-end' }}>
+        <IconButton onClick={handleDownload} size="small" title="Download">
+          <DownloadIcon />
         </IconButton>
-      </CardActions>
+        {canShare && (
+          <IconButton onClick={() => onShare(document)} size="small" title="Share">
+            <ShareIcon />
+          </IconButton>
+        )}
+        <IconButton
+          onClick={handleMenuOpen}
+          size="small"
+          title="More actions"
+        >
+          <MoreVertIcon />
+        </IconButton>
+      </Box>
 
       <Menu
-        id="document-menu"
         anchorEl={anchorEl}
-        open={open}
+        open={Boolean(anchorEl)}
         onClose={handleMenuClose}
-        onClick={handleMenuClose}
-        transformOrigin={{ horizontal: 'right', vertical: 'top' }}
-        anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
       >
-        <MenuItem onClick={handleAction(onEdit)}>
-          <ListItemIcon>
-            <EditIcon fontSize="small" />
-          </ListItemIcon>
-          <ListItemText>Edit</ListItemText>
+        <MenuItem onClick={() => {
+          handleMenuClose();
+          onVersionHistory(document);
+        }}>
+          <HistoryIcon sx={{ mr: 1 }} /> Version History
         </MenuItem>
-        <MenuItem onClick={handleAction(onShare)}>
-          <ListItemIcon>
-            <ShareIcon fontSize="small" />
-          </ListItemIcon>
-          <ListItemText>Share</ListItemText>
-        </MenuItem>
-        <MenuItem onClick={handleAction(onVersionHistory)}>
-          <ListItemIcon>
-            <HistoryIcon fontSize="small" />
-          </ListItemIcon>
-          <ListItemText>Version History</ListItemText>
-        </MenuItem>
-        <MenuItem 
-          onClick={handleAction(onDelete)}
-          sx={{ color: 'error.main' }}
-        >
-          <ListItemIcon>
-            <DeleteIcon fontSize="small" color="error" />
-          </ListItemIcon>
-          <ListItemText>Delete</ListItemText>
-        </MenuItem>
+        {canDelete && (
+          <MenuItem onClick={handleDelete}>
+            <DeleteIcon sx={{ mr: 1 }} /> Delete
+          </MenuItem>
+        )}
       </Menu>
     </Card>
   );
+};
+
+DocumentCard.propTypes = {
+  document: PropTypes.shape({
+    id: PropTypes.string.isRequired,
+    title: PropTypes.string.isRequired,
+    description: PropTypes.string,
+    status: PropTypes.string.isRequired,
+    updatedAt: PropTypes.string.isRequired
+  }).isRequired,
+  onView: PropTypes.func.isRequired,
+  onShare: PropTypes.func,
+  onVersionHistory: PropTypes.func,
+  onDelete: PropTypes.func
 };
 
 export default DocumentCard;

@@ -1,3 +1,17 @@
+/**
+ * Forgot Password Form Component
+ * 
+ * A form component for initiating password reset.
+ * Features include:
+ * - Email validation
+ * - Form validation
+ * - Error handling
+ * - Success feedback
+ * - Back to login link
+ * 
+ * @component
+ */
+
 import React from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
@@ -18,12 +32,20 @@ import { forgotPasswordSchema } from '../../validation/authSchemas';
 import FormError from '../common/FormError';
 import ErrorAlert from '../common/ErrorAlert';
 
+/**
+ * Forgot Password Form Component
+ * 
+ * @returns {JSX.Element} Forgot password form component
+ */
 const ForgotPasswordForm = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const [success, setSuccess] = React.useState(false);
   const { loading, error } = useSelector(state => state.auth);
 
+  /**
+   * Initialize form with Formik
+   */
   const formik = useFormik({
     initialValues: {
       email: ''
@@ -40,6 +62,9 @@ const ForgotPasswordForm = () => {
     }
   });
 
+  /**
+   * Render success message
+   */
   if (success) {
     return (
       <Paper elevation={3} sx={{ p: 4, maxWidth: 400, mx: 'auto' }}>

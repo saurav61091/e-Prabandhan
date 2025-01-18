@@ -1,3 +1,18 @@
+/**
+ * Sidebar Component
+ * 
+ * The application's main navigation sidebar.
+ * Features include:
+ * - Responsive drawer
+ * - Navigation menu with icons
+ * - Active route highlighting
+ * - Nested menu items
+ * - Badge indicators for notifications
+ * - Role-based menu items
+ * 
+ * @component
+ */
+
 import React from 'react';
 import {
   Box,
@@ -23,8 +38,9 @@ import {
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 
-const drawerWidth = 240;
-
+/**
+ * Navigation menu items configuration
+ */
 const menuItems = [
   {
     title: 'Dashboard',
@@ -60,6 +76,14 @@ const menuItems = [
   }
 ];
 
+/**
+ * Sidebar Component
+ * 
+ * @param {Object} props - Component props
+ * @param {number} props.unreadNotifications - Number of unread notifications
+ * @param {number} props.pendingTasks - Number of pending tasks
+ * @returns {JSX.Element} Sidebar component
+ */
 const Sidebar = ({ unreadNotifications = 0, pendingTasks = 0 }) => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -68,6 +92,89 @@ const Sidebar = ({ unreadNotifications = 0, pendingTasks = 0 }) => {
   const handleNavigation = (path) => {
     navigate(path);
   };
+
+  /**
+   * Check if a path is currently active
+   * @param {string} path - Path to check
+   * @returns {boolean} Whether the path is active
+   */
+  const isPathActive = (path) => {
+    return location.pathname === path;
+  };
+
+  /**
+   * Render a menu item
+   * @param {Object} item - Menu item configuration
+   * @returns {JSX.Element} Menu item component
+   */
+  const renderMenuItem = (item) => {
+    const isActive = isPathActive(item.path);
+
+    return (
+      <ListItem
+        button
+        key={item.path}
+        onClick={() => handleNavigation(item.path)}
+        selected={isActive}
+        sx={{
+          '&.Mui-selected': {
+            backgroundColor: 'action.selected',
+            '&:hover': {
+              backgroundColor: 'action.hover'
+            }
+          }
+        }}
+      >
+        <ListItemIcon>
+          {item.badge ? (
+            <Badge
+              badgeContent={
+                item.path === '/workflow/notifications'
+                  ? unreadNotifications
+                  : item.path === '/workflow/tasks'
+                  ? pendingTasks
+                  : 0
+              }
+              color="error"
+            >
+              <item.icon color={isActive ? 'primary' : 'inherit'} />
+            </Badge>
+          ) : (
+            <item.icon color={isActive ? 'primary' : 'inherit'} />
+          )}
+        </ListItemIcon>
+        <ListItemText
+          primary={item.title}
+          primaryTypographyProps={{
+            color: isActive ? 'primary' : 'inherit'
+          }}
+        />
+      </ListItem>
+    );
+  };
+
+  const drawerContent = (
+    <Box sx={{ overflow: 'auto' }}>
+      {/* Logo */}
+      <Box sx={{ p: 2 }}>
+        <Typography variant="h6" color="primary">
+          e-Prabandhan
+        </Typography>
+        <Typography variant="body2" color="textSecondary">
+          {user?.name || 'User'}
+        </Typography>
+      </Box>
+
+      <Divider />
+
+      {/* Navigation Menu */}
+      <List>
+        {menuItems.map(item => renderMenuItem(item))}
+      </List>
+    </Box>
+  );
+
+  const drawerWidth = 240;
 
   return (
     <Drawer
@@ -84,60 +191,7 @@ const Sidebar = ({ unreadNotifications = 0, pendingTasks = 0 }) => {
         }
       }}
     >
-      <Box sx={{ overflow: 'auto' }}>
-        <Box sx={{ p: 2 }}>
-          <Typography variant="h6" color="primary">
-            e-Prabandhan
-          </Typography>
-          <Typography variant="body2" color="textSecondary">
-            {user?.name || 'User'}
-          </Typography>
-        </Box>
-        <Divider />
-        <List>
-          {menuItems.map((item) => (
-            <ListItem
-              button
-              key={item.path}
-              onClick={() => handleNavigation(item.path)}
-              selected={location.pathname === item.path}
-              sx={{
-                '&.Mui-selected': {
-                  backgroundColor: 'action.selected',
-                  '&:hover': {
-                    backgroundColor: 'action.hover'
-                  }
-                }
-              }}
-            >
-              <ListItemIcon>
-                {item.badge ? (
-                  <Badge
-                    badgeContent={
-                      item.path === '/workflow/notifications'
-                        ? unreadNotifications
-                        : item.path === '/workflow/tasks'
-                        ? pendingTasks
-                        : 0
-                    }
-                    color="error"
-                  >
-                    <item.icon color={location.pathname === item.path ? 'primary' : 'inherit'} />
-                  </Badge>
-                ) : (
-                  <item.icon color={location.pathname === item.path ? 'primary' : 'inherit'} />
-                )}
-              </ListItemIcon>
-              <ListItemText
-                primary={item.title}
-                primaryTypographyProps={{
-                  color: location.pathname === item.path ? 'primary' : 'inherit'
-                }}
-              />
-            </ListItem>
-          ))}
-        </List>
-      </Box>
+      {drawerContent}
     </Drawer>
   );
 };
