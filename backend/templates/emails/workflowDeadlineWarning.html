@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            background-color: #fff3cd;
+            padding: 20px;
+            text-align: center;
+            border-radius: 5px;
+        }
+        .content {
+            padding: 20px;
+        }
+        .warning {
+            color: #856404;
+            background-color: #fff3cd;
+            border: 1px solid #ffeeba;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        .button {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #ffc107;
+            color: #333;
+            text-decoration: none;
+            border-radius: 5px;
+            margin-top: 20px;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 12px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h2>⚠️ Workflow Task Deadline Approaching</h2>
+        </div>
+        <div class="content">
+            <p>Dear {{assignee}},</p>
+            
+            <div class="warning">
+                <p><strong>Important Notice:</strong> The deadline for your assigned task is approaching.</p>
+            </div>
+            
+            <h3>Task Details:</h3>
+            <ul>
+                <li><strong>Workflow:</strong> {{workflow}}</li>
+                <li><strong>Step:</strong> {{step}}</li>
+                <li><strong>Deadline:</strong> {{deadline}}</li>
+                <li><strong>Days Remaining:</strong> {{daysRemaining}}</li>
+            </ul>
+            
+            <p>Please complete this task as soon as possible to avoid any delays in the workflow.</p>
+            
+            <a href="{{taskUrl}}" class="button">View Task</a>
+            
+            <p>If you need assistance or cannot complete this task, please contact your supervisor immediately.</p>
+            
+            <p>Best regards,<br>E-Prabandhan Team</p>
+        </div>
+        <div class="footer">
+            <p>This is an automated message. Please do not reply to this email.</p>
+        </div>
+    </div>
+</body>
+</html>

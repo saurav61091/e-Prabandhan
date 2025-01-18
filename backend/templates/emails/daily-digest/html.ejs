@@ -1,0 +1,55 @@
+<%- include('../layouts/base', { content: `
+  <h2>Daily Digest</h2>
+  
+  <p>Hello ${userName},</p>
+  
+  <p>Here's your daily summary of activities in e-Prabandhan:</p>
+  
+  <% if (pendingTasks.length > 0) { %>
+    <div style="margin: 20px 0;">
+      <h3 style="color: #1976d2;">Pending Tasks</h3>
+      <ul style="list-style: none; padding: 0;">
+        <% pendingTasks.forEach(task => { %>
+          <li style="background-color: #f8f9fa; padding: 10px; margin: 5px 0; border-radius: 4px;">
+            <strong>${task.title}</strong><br>
+            Due: ${new Date(task.dueDate).toLocaleDateString()}<br>
+            Priority: ${task.priority}
+          </li>
+        <% }); %>
+      </ul>
+    </div>
+  <% } %>
+
+  <% if (pendingApprovals.length > 0) { %>
+    <div style="margin: 20px 0;">
+      <h3 style="color: #1976d2;">Pending Approvals</h3>
+      <ul style="list-style: none; padding: 0;">
+        <% pendingApprovals.forEach(workflow => { %>
+          <li style="background-color: #f8f9fa; padding: 10px; margin: 5px 0; border-radius: 4px;">
+            <strong>${workflow.name}</strong><br>
+            Current Step: ${workflow.steps[workflow.currentStep].name}
+          </li>
+        <% }); %>
+      </ul>
+    </div>
+  <% } %>
+
+  <% if (recentFiles.length > 0) { %>
+    <div style="margin: 20px 0;">
+      <h3 style="color: #1976d2;">Recent Files</h3>
+      <ul style="list-style: none; padding: 0;">
+        <% recentFiles.forEach(file => { %>
+          <li style="background-color: #f8f9fa; padding: 10px; margin: 5px 0; border-radius: 4px;">
+            <strong>${file.name}</strong><br>
+            Status: ${file.status}<br>
+            Updated: ${new Date(file.updatedAt).toLocaleDateString()}
+          </li>
+        <% }); %>
+      </ul>
+    </div>
+  <% } %>
+
+  <a href="${dashboardUrl}" class="button" style="color: #ffffff;">View Dashboard</a>
+  
+  <p>Best regards,<br>e-Prabandhan Team</p>
+` }) %>

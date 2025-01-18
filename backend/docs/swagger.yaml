@@ -1,0 +1,477 @@
+openapi: 3.0.0
+info:
+  title: e-Prabandhan API
+  description: |
+    API documentation for e-Prabandhan - Advanced Document Management System
+    
+    This API provides endpoints for:
+    * Authentication & Authorization
+    * Document Management
+    * File Preview & Search
+    * Employee Information System
+    * Organization Structure Management
+    * Audit & Compliance
+  version: 1.0.0
+  contact:
+    name: Support Team
+    email: support@eprabandhan.com
+
+servers:
+  - url: http://localhost:3000/api/v1
+    description: Development server
+  - url: https://api.eprabandhan.com/v1
+    description: Production server
+
+tags:
+  - name: Auth
+    description: Authentication and authorization endpoints
+  - name: Documents
+    description: Document management endpoints
+  - name: Preview
+    description: Document preview endpoints
+  - name: Search
+    description: Search and indexing endpoints
+  - name: Employees
+    description: Employee management endpoints
+  - name: Organization
+    description: Organization structure management endpoints
+  - name: Audit
+    description: Audit and compliance endpoints
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+    
+  schemas:
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+          description: Error message
+        status:
+          type: integer
+          description: HTTP status code
+        details:
+          type: object
+          description: Additional error details
+
+    LoginRequest:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          format: password
+          minLength: 8
+
+    LoginResponse:
+      type: object
+      properties:
+        token:
+          type: string
+        refreshToken:
+          type: string
+        user:
+          type: object
+          properties:
+            id:
+              type: string
+              format: uuid
+            email:
+              type: string
+            role:
+              type: string
+            firstName:
+              type: string
+            lastName:
+              type: string
+
+    Document:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        type:
+          type: string
+        size:
+          type: integer
+        path:
+          type: string
+        isEncrypted:
+          type: boolean
+        metadata:
+          type: object
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        createdBy:
+          type: string
+          format: uuid
+        departmentId:
+          type: string
+          format: uuid
+
+    Employee:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        employeeId:
+          type: string
+        userId:
+          type: string
+          format: uuid
+        departmentId:
+          type: string
+          format: uuid
+        position:
+          type: string
+        status:
+          type: string
+          enum: [active, on_leave, terminated, suspended]
+        type:
+          type: string
+          enum: [full_time, part_time, contract, intern]
+        joinDate:
+          type: string
+          format: date
+        endDate:
+          type: string
+          format: date
+        reportingTo:
+          type: string
+          format: uuid
+        designation:
+          type: string
+        skills:
+          type: array
+          items:
+            type: string
+        documents:
+          type: object
+
+    Organization:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        code:
+          type: string
+        type:
+          type: string
+          enum: [company, division, department, unit, team]
+        parentId:
+          type: string
+          format: uuid
+        managerId:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum: [active, inactive, archived]
+        level:
+          type: integer
+        headcount:
+          type: integer
+        budget:
+          type: number
+        metadata:
+          type: object
+
+paths:
+  /auth/login:
+    post:
+      tags: [Auth]
+      summary: User login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+        '401':
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /documents:
+    get:
+      tags: [Documents]
+      summary: List documents
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+        - in: query
+          name: type
+          schema:
+            type: string
+        - in: query
+          name: departmentId
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: List of documents
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  documents:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Document'
+                  pagination:
+                    type: object
+                    properties:
+                      total:
+                        type: integer
+                      page:
+                        type: integer
+                      limit:
+                        type: integer
+                      totalPages:
+                        type: integer
+
+  /preview/files/{fileId}:
+    get:
+      tags: [Preview]
+      summary: Get file preview
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: fileId
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - in: query
+          name: type
+          schema:
+            type: string
+            enum: [thumbnail, medium, full]
+            default: medium
+      responses:
+        '200':
+          description: File preview
+          content:
+            image/*:
+              schema:
+                type: string
+                format: binary
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+        '404':
+          description: File not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /employees:
+    get:
+      tags: [Employees]
+      summary: Search employees
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: query
+          name: query
+          schema:
+            type: string
+        - in: query
+          name: departmentId
+          schema:
+            type: string
+            format: uuid
+        - in: query
+          name: status
+          schema:
+            type: string
+            enum: [active, on_leave, terminated, suspended]
+        - in: query
+          name: type
+          schema:
+            type: string
+            enum: [full_time, part_time, contract, intern]
+      responses:
+        '200':
+          description: List of employees
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  employees:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Employee'
+                  pagination:
+                    type: object
+                    properties:
+                      total:
+                        type: integer
+                      page:
+                        type: integer
+                      limit:
+                        type: integer
+                      totalPages:
+                        type: integer
+
+  /organization:
+    get:
+      tags: [Organization]
+      summary: Search organizations
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: query
+          name: query
+          schema:
+            type: string
+        - in: query
+          name: type
+          schema:
+            type: string
+            enum: [company, division, department, unit, team]
+        - in: query
+          name: status
+          schema:
+            type: string
+            enum: [active, inactive, archived]
+      responses:
+        '200':
+          description: List of organizations
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  organizations:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Organization'
+                  pagination:
+                    type: object
+                    properties:
+                      total:
+                        type: integer
+                      page:
+                        type: integer
+                      limit:
+                        type: integer
+                      totalPages:
+                        type: integer
+
+  /audit/logs:
+    get:
+      tags: [Audit]
+      summary: Get audit logs
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: query
+          name: startDate
+          schema:
+            type: string
+            format: date
+        - in: query
+          name: endDate
+          schema:
+            type: string
+            format: date
+        - in: query
+          name: action
+          schema:
+            type: string
+        - in: query
+          name: userId
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: List of audit logs
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  logs:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                          format: uuid
+                        action:
+                          type: string
+                        userId:
+                          type: string
+                          format: uuid
+                        resourceType:
+                          type: string
+                        resourceId:
+                          type: string
+                        metadata:
+                          type: object
+                        timestamp:
+                          type: string
+                          format: date-time
+                  pagination:
+                    type: object
+                    properties:
+                      total:
+                        type: integer
+                      page:
+                        type: integer
+                      limit:
+                        type: integer
+                      totalPages:
+                        type: integer

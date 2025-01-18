@@ -1,0 +1,19 @@
+<%- include('../layouts/base', { content: `
+  <h2>Workflow Approval Request</h2>
+  
+  <p>Hello ${userName},</p>
+  
+  <p>Your approval is required for the following workflow:</p>
+  
+  <div style="background-color: #f8f9fa; padding: 15px; border-radius: 4px; margin: 15px 0;">
+    <h3 style="margin-top: 0;">${workflowName}</h3>
+    <p style="margin-bottom: 10px;">${workflowDescription}</p>
+    <p><strong>Current Step:</strong> ${stepName}</p>
+  </div>
+
+  <p>Please review and take appropriate action at your earliest convenience.</p>
+  
+  <a href="${dashboardUrl}" class="button" style="color: #ffffff;">Review Workflow</a>
+  
+  <p>Best regards,<br>e-Prabandhan Team</p>
+` }) %>

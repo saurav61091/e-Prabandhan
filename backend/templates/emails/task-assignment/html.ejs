@@ -1,0 +1,20 @@
+<%- include('../layouts/base', { content: `
+  <h2>New Task Assignment</h2>
+  
+  <p>Hello ${userName},</p>
+  
+  <p>A new task has been assigned to you:</p>
+  
+  <div style="background-color: #f8f9fa; padding: 15px; border-radius: 4px; margin: 15px 0;">
+    <h3 style="margin-top: 0;">${taskTitle}</h3>
+    <p style="margin-bottom: 10px;">${taskDescription}</p>
+    <p><strong>Due Date:</strong> ${new Date(dueDate).toLocaleDateString()}</p>
+    <p><strong>Priority:</strong> ${priority}</p>
+  </div>
+
+  <p>Please review and start working on this task as soon as possible.</p>
+  
+  <a href="${dashboardUrl}" class="button" style="color: #ffffff;">View Task</a>
+  
+  <p>Best regards,<br>e-Prabandhan Team</p>
+` }) %>

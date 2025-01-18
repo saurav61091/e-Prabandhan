@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            background-color: #f8d7da;
+            padding: 20px;
+            text-align: center;
+            border-radius: 5px;
+        }
+        .content {
+            padding: 20px;
+        }
+        .alert {
+            color: #721c24;
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        .button {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #dc3545;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            margin-top: 20px;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 12px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h2>🚨 Urgent: Workflow Step Overdue</h2>
+        </div>
+        <div class="content">
+            <p>Dear {{manager}},</p>
+            
+            <div class="alert">
+                <p><strong>Escalation Notice:</strong> A workflow step has exceeded its deadline and requires immediate attention.</p>
+            </div>
+            
+            <h3>Task Details:</h3>
+            <ul>
+                <li><strong>Workflow:</strong> {{workflow}}</li>
+                <li><strong>Step:</strong> {{step}}</li>
+                <li><strong>Original Deadline:</strong> {{deadline}}</li>
+                <li><strong>Days Overdue:</strong> {{daysOverdue}}</li>
+                <li><strong>Current Assignees:</strong> {{assignees}}</li>
+            </ul>
+            
+            <p>This step is blocking the workflow progress and requires your intervention. Please take one of the following actions:</p>
+            <ol>
+                <li>Follow up with the assigned users</li>
+                <li>Reassign the task to different users</li>
+                <li>Review and adjust the deadline if necessary</li>
+            </ol>
+            
+            <a href="{{taskUrl}}" class="button">View Task</a>
+            
+            <p>If you have any questions or need assistance, please contact the system administrator.</p>
+            
+            <p>Best regards,<br>E-Prabandhan Team</p>
+        </div>
+        <div class="footer">
+            <p>This is an automated message. Please do not reply to this email.</p>
+        </div>
+    </div>
+</body>
+</html>
